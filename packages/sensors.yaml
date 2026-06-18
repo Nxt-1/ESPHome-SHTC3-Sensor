@@ -1,13 +1,13 @@
+i2c:
+  sda: GPIO22
+  scl: GPIO23
+  scan: false
+
 sensor:
   - platform: shtcx
-    id: shtc3
-
+    id: shtc3_sensor
     temperature:
-      id: temperature
       name: "${friendly_name} Temperature"
-
     humidity:
-      id: humidity
       name: "${friendly_name} Humidity"
-
     update_interval: never
