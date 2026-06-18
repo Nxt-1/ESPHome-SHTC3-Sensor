@@ -1,0 +1,13 @@
+sensor:
+  - platform: shtcx
+    id: shtc3
+
+    temperature:
+      id: temperature
+      name: "${friendly_name} Temperature"
+
+    humidity:
+      id: humidity
+      name: "${friendly_name} Humidity"
+
+    update_interval: never

@@ -1,0 +1,24 @@
+sensor:
+  - platform: adc
+    pin: GPIO0
+    attenuation: auto
+    id: battery_voltage
+
+    name: "${friendly_name} Battery Voltage"
+
+    update_interval: never
+
+    filters:
+      - multiply: 2.0
+
+  - platform: copy
+    source_id: battery_voltage
+
+    name: "${friendly_name} Battery"
+
+    unit_of_measurement: "%"
+
+    filters:
+      - calibrate_linear:
+          - 3.30 -> 0
+          - 4.20 -> 100

@@ -1,0 +1,16 @@
+deep_sleep:
+  id: deep_sleep_control
+
+  run_duration: 15s
+  sleep_duration: 5min
+
+esphome:
+  on_boot:
+    priority: -100
+
+    then:
+      - component.update: shtc3
+      - component.update: battery_voltage
+      - component.update: wifi_signal
+      - delay: 10s
+      - deep_sleep.enter: deep_sleep_control
