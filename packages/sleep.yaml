@@ -3,6 +3,13 @@ deep_sleep:
   run_duration: 15s
   sleep_duration: 5min
 
+switch:
+  - platform: template
+    name: "${friendly_name} Deep Sleep Enabled"
+    id: deep_sleep_enabled
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+
 esphome:
   on_boot:
     priority: -100
@@ -11,4 +18,8 @@ esphome:
       - component.update: battery_voltage
       - component.update: wifi_rssi
       - delay: 10s
-      - deep_sleep.enter: deep_sleep_control
+      - if:
+          condition:
+            switch.is_on: deep_sleep_enabled
+          then:
+            - deep_sleep.enter: deep_sleep_control
