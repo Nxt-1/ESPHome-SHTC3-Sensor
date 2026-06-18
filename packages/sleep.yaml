@@ -11,14 +11,26 @@ switch:
 
 esphome:
   on_boot:
-    priority: -100
+    priority: 600
+    then:
+      - logger.log: "Booted. Deep sleep is disabled by default."
+
+  on_shutdown:
+    then:
+      - logger.log: "Shutting down / entering deep sleep."
+
+interval:
+  - interval: 30s
     then:
       - component.update: shtc3_sensor
       - component.update: battery_voltage
       - component.update: wifi_rssi
-      - delay: 10s
       - if:
           condition:
             switch.is_on: deep_sleep_enabled
           then:
+            - logger.log: "Deep sleep enabled. Going to sleep."
+            - delay: 2s
             - deep_sleep.enter: deep_sleep_control
+          else:
+            - logger.log: "Deep sleep disabled. Staying awake."
