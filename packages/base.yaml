@@ -10,6 +10,7 @@ esp32:
 
 logger:
   baud_rate: 0
+  level: ${log_level}
 
 api:
 
