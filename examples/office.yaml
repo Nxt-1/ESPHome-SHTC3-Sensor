@@ -2,7 +2,7 @@ substitutions:
   name: office-sensor
   friendly_name: Office Sensor
   log_level: DEBUG
-  log_baud_rate: 115200
+  log_baud_rate: 0
 
 packages:
   remote_package:
