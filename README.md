@@ -31,6 +31,7 @@ This project features a low-cost DIY temperature and humidity sensor for usage i
 | + 1M R  | A0   |
 | - 1M R  | A0   |
 ```
-
+![Front.jpg](Pictures%2FFront.jpg)
+![Back.jpg](Pictures%2FBack.jpg)
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
