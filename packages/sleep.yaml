@@ -8,6 +8,27 @@ switch:
     id: deep_sleep_enabled
     optimistic: true
     restore_mode: ALWAYS_OFF
+    turn_on_action:
+      - script.execute: update_and_sleep
+
+script:
+  - id: update_and_sleep
+    mode: restart
+    then:
+      - logger.log: "Updating sensors."
+
+      - component.update: shtc3_sensor
+      - component.update: battery_voltage
+      - component.update: wifi_rssi
+
+      - if:
+          condition:
+            switch.is_on: deep_sleep_enabled
+          then:
+            # Briefly allow the updated states to reach Home Assistant.
+            - delay: 500ms
+            - logger.log: "Entering deep sleep."
+            - deep_sleep.enter: deep_sleep_control
 
 esphome:
   on_boot:
@@ -18,21 +39,35 @@ esphome:
             lambda: |-
               return esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_TIMER;
           then:
-            - logger.log: "Timer wake-up: deep sleep remains enabled."
-            - switch.turn_on: deep_sleep_enabled
+            - logger.log: "Timer wake-up: continuing deep-sleep operation."
+
+            # Set the displayed switch state without running turn_on_action.
+            # Sleeping starts after Home Assistant reconnects.
+            - switch.template.publish:
+                id: deep_sleep_enabled
+                state: ON
+
           else:
             - logger.log: "Power-on or reset: deep sleep disabled."
+
+            - switch.template.publish:
+                id: deep_sleep_enabled
+                state: OFF
 
 api:
   on_client_connected:
     then:
-      - component.update: shtc3_sensor
-      - component.update: battery_voltage
-      - component.update: wifi_rssi
+      # Always provide fresh readings after connecting.
+      - script.execute: update_and_sleep
 
+interval:
+  - interval: 5s
+    then:
+      # While intentionally kept awake, update frequently.
       - if:
           condition:
-            switch.is_on: deep_sleep_enabled
+            switch.is_off: deep_sleep_enabled
           then:
-            - delay: 500ms
-            - deep_sleep.enter: deep_sleep_control
+            - component.update: shtc3_sensor
+            - component.update: battery_voltage
+            - component.update: wifi_rssi
