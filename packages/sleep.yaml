@@ -26,12 +26,13 @@ esphome:
 api:
   on_client_connected:
     then:
+      - component.update: shtc3_sensor
+      - component.update: battery_voltage
+      - component.update: wifi_rssi
+
       - if:
           condition:
             switch.is_on: deep_sleep_enabled
           then:
-            - component.update: shtc3_sensor
-            - component.update: battery_voltage
-            - component.update: wifi_rssi
             - delay: 500ms
             - deep_sleep.enter: deep_sleep_control
