@@ -8,25 +8,32 @@ switch:
     id: deep_sleep_enabled
     optimistic: true
     restore_mode: ALWAYS_OFF
+
     turn_on_action:
       - script.execute: update_and_sleep
 
 script:
-  - id: update_and_sleep
+  - id: update_sensors
     mode: restart
     then:
-      - logger.log: "Updating sensors."
-
       - component.update: shtc3_sensor
       - component.update: battery_voltage
       - component.update: wifi_rssi
+
+  - id: update_and_sleep
+    mode: single
+    then:
+      - logger.log: "Updating sensors before sleep."
+      - script.execute: update_sensors
+      - script.wait: update_sensors
+
+      # Give the measurements and API states time to be transmitted.
+      - delay: 2s
 
       - if:
           condition:
             switch.is_on: deep_sleep_enabled
           then:
-            # Briefly allow the updated states to reach Home Assistant.
-            - delay: 500ms
             - logger.log: "Entering deep sleep."
             - deep_sleep.enter: deep_sleep_control
 
@@ -39,13 +46,26 @@ esphome:
             lambda: |-
               return esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_TIMER;
           then:
-            - logger.log: "Timer wake-up: continuing deep-sleep operation."
+            - logger.log: "Timer wake-up detected."
 
-            # Set the displayed switch state without running turn_on_action.
-            # Sleeping starts after Home Assistant reconnects.
             - switch.template.publish:
                 id: deep_sleep_enabled
                 state: ON
+
+            - wait_until:
+                condition:
+                  api.connected:
+                timeout: 30s
+
+            - if:
+                condition:
+                  api.connected:
+                then:
+                  - logger.log: "Home Assistant connected."
+                  - script.execute: update_and_sleep
+                else:
+                  - logger.log: "API connection timeout; returning to sleep."
+                  - deep_sleep.enter: deep_sleep_control
 
           else:
             - logger.log: "Power-on or reset: deep sleep disabled."
@@ -54,20 +74,22 @@ esphome:
                 id: deep_sleep_enabled
                 state: OFF
 
-api:
-  on_client_connected:
-    then:
-      # Always provide fresh readings after connecting.
-      - script.execute: update_and_sleep
+            - wait_until:
+                condition:
+                  api.connected:
+                timeout: 30s
+
+            - if:
+                condition:
+                  api.connected:
+                then:
+                  - script.execute: update_sensors
 
 interval:
   - interval: 5s
     then:
-      # While intentionally kept awake, update frequently.
       - if:
           condition:
             switch.is_off: deep_sleep_enabled
           then:
-            - component.update: shtc3_sensor
-            - component.update: battery_voltage
-            - component.update: wifi_rssi
+            - script.execute: update_sensors
