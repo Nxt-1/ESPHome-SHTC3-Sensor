@@ -15,8 +15,16 @@ sensor:
     unit_of_measurement: "%"
     filters:
       - calibrate_linear:
-          - 3.20 -> 0
-          - 4.20 -> 100
+          method: exact
+          datapoints:
+            - 3.30 -> 0
+            - 3.50 -> 5
+            - 3.60 -> 10
+            - 3.70 -> 25
+            - 3.80 -> 45
+            - 3.90 -> 65
+            - 4.00 -> 85
+            - 4.10 -> 100
       - clamp:
           min_value: 0
           max_value: 100
