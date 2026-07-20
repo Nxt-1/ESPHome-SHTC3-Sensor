@@ -1,0 +1,19 @@
+substitutions:
+  name: office-sensor
+  friendly_name: Office Sensor
+  log_level: DEBUG
+  log_baud_rate: "115200"
+
+packages:
+  remote_package:
+    url: https://github.com/Nxt-1/ESPHome-SHTC3-Sensor
+    ref: main
+    files:
+      - packages/base.yaml
+      - packages/sensors.yaml
+      - packages/battery.yaml
+      - packages/sleep.yaml
+    refresh: 0s
+
+wifi:
+  use_address: YOUR IP
